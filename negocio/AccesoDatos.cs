@@ -19,8 +19,8 @@ namespace Negocio
 
         public AccesoDatos()
         {
-            //conexion = new SqlConnection("server=localhost\\SQLEXPRESS; database=PROMOS_DB; integrated security=true");
-            conexion = new SqlConnection("server=.\\SQLEXPRESS; database=PROMOS_DB; integrated security=true");
+            //conexion = new SqlConnection("server=localhost\\SQLEXPRESS; database=CATALOGO_P3_DB; integrated security=true");
+            conexion = new SqlConnection("Server = .\\SQLEXPRESS; Initial Catalog = CATALOGO_P3_DB; Integrated Security = true");
             comando = new SqlCommand();
         }
 
