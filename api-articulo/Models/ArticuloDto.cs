@@ -14,8 +14,6 @@ namespace api_articulo.Models
         public decimal Precio { get; set; }
         public int IdMarca { get; set; }
         public int IdCategoria { get; set; }
-        public string UrlImagen { get; set; }
-
-
+       
     }
 }

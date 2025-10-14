@@ -74,9 +74,7 @@ namespace Negocio
                 datos.setearParametro("@IdCategoria", nuevo.Categoria.Id);
                 datos.setearParametro("@Precio", nuevo.Precio);
 
-                int ultimoId = (int)datos.ejecutarScalar();
-                nuevo.listaImagenes[0].IdArticulo = ultimoId;         
-                negocio.agregar(nuevo.listaImagenes[0]);
+                datos.ejecutarAccion();
             }
             catch (Exception ex)
             {
