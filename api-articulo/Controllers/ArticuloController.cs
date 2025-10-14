@@ -2,6 +2,7 @@
 using Dominio;
 using Negocio;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -14,52 +15,106 @@ namespace api_articulo.Controllers
     public class ArticuloController : ApiController
     {
         // GET: api/Articulo
-        public IEnumerable<Articulo> Get()
+        public HttpResponseMessage Get()
         {
-            ArticuloNegocio negocio = new ArticuloNegocio();
-            return negocio.listar();
+            try
+            {
+                ArticuloNegocio negocio = new ArticuloNegocio();
+                List<Articulo> lista = negocio.listar();
+                return Request.CreateResponse(HttpStatusCode.OK, lista);
+            }
+            catch (Exception ex)
+            {
+                return Request.CreateResponse(HttpStatusCode.InternalServerError, "Ocurrió un error inesperado.");
+            }
         }
 
         // GET: api/Articulo/5
-        public Articulo Get(int id)
+        public HttpResponseMessage Get(int id)
         {
-            ArticuloNegocio negocio = new ArticuloNegocio();
-            List<Articulo> lista = negocio.listar();
+            try
+            {
+                if (id <= 0)
+                    return Request.CreateResponse(HttpStatusCode.BadRequest, "ID inválido.");
 
-            return lista.Find(x => x.Id == id);
+                ArticuloNegocio negocio = new ArticuloNegocio();
+                List<Articulo> lista = negocio.listar();
+                Articulo articulo = lista.Find(x => x.Id == id);
+
+                if (articulo == null)
+                    return Request.CreateResponse(HttpStatusCode.NotFound, "Artículo no encontrado.");
+
+                return Request.CreateResponse(HttpStatusCode.OK, articulo);
+            }
+            catch (Exception ex)
+            {
+                return Request.CreateResponse(HttpStatusCode.InternalServerError, ex.Message);
+            }
         }
 
+
         // POST: api/Articulo
-        public HttpResponseMessage Post([FromBody]ArticuloDto articulo)
+        public HttpResponseMessage Post([FromBody] ArticuloDto articulo)
         {
-            ArticuloNegocio negocio = new ArticuloNegocio();
-            Articulo nuevo = new Articulo();
-            MarcaNegocio marcaNegocio = new MarcaNegocio();
-            CategoriaNegocio categoriaNegocio = new CategoriaNegocio();
-            
 
-            if (articulo == null) 
-                return Request.CreateResponse(HttpStatusCode.BadRequest, "El cuerpo de la solicitud está vacío.");
+            try
+            {
 
-           
-            Marca marca = marcaNegocio.listar().Find(x => x.Id == articulo.IdMarca);
-            Categoria categoria = categoriaNegocio.listar().Find(x => x.Id == articulo.IdCategoria);
+                ArticuloNegocio negocio = new ArticuloNegocio();
 
-            if (marca == null)
-                return Request.CreateResponse(HttpStatusCode.BadRequest, "La marca no existe.");
+                if (articulo == null)
+                    return Request.CreateResponse(HttpStatusCode.BadRequest, "El cuerpo de la solicitud está vacío.");
 
-            if (categoria == null)
-                return Request.CreateResponse(HttpStatusCode.BadRequest, "La Categoria no existe.");
+                if (string.IsNullOrWhiteSpace(articulo.Codigo))
+                    return Request.CreateResponse(HttpStatusCode.BadRequest, "El código es obligatorio.");
 
-            nuevo.Codigo = articulo.Codigo;
-            nuevo.Nombre = articulo.Nombre;
-            nuevo.Descripcion = articulo.Descripcion;
-            nuevo.Precio = articulo.Precio;            
-            nuevo.Marca = new Marca { Id = articulo.IdMarca };
-            nuevo.Categoria = new Categoria { Id = articulo.IdCategoria };
-            
-            negocio.agregar(nuevo);
-            return Request.CreateResponse(HttpStatusCode.OK, "Articulo agregado correctamente.");
+                if (string.IsNullOrWhiteSpace(articulo.Nombre))
+                    return Request.CreateResponse(HttpStatusCode.BadRequest, "El nombre es obligatorio.");
+
+                if (articulo.Descripcion.Length > 500)
+                    return Request.CreateResponse(HttpStatusCode.BadRequest, "La descripción no puede superar los 500 caracteres.");
+
+                if (articulo.Precio <= 0)
+                    return Request.CreateResponse(HttpStatusCode.BadRequest, "El precio debe ser mayor a 0.");
+
+                MarcaNegocio marcaNegocio = new MarcaNegocio();
+                Marca marca = marcaNegocio.listar().Find(x => x.Id == articulo.IdMarca);
+
+                if (marca == null)
+                    return Request.CreateResponse(HttpStatusCode.BadRequest, "La marca no existe.");
+
+                CategoriaNegocio categoriaNegocio = new CategoriaNegocio();
+                Categoria categoria = categoriaNegocio.listar().Find(x => x.Id == articulo.IdCategoria);
+
+                if (categoria == null)
+                    return Request.CreateResponse(HttpStatusCode.BadRequest, "La Categoria no existe.");
+
+                if (negocio.ExisteCodigo(articulo.Codigo))
+                    return Request.CreateResponse(HttpStatusCode.Conflict, "Ya existe un artículo con el código" + ": "+ articulo.Codigo);
+
+                var nuevo = new Articulo
+                {
+                    Codigo = articulo.Codigo,
+                    Nombre = articulo.Nombre,
+                    Descripcion = articulo.Descripcion,
+                    Precio = articulo.Precio,
+                    Marca = new Marca { Id = articulo.IdMarca },
+                    Categoria = new Categoria { Id = articulo.IdCategoria },
+
+                };
+
+                negocio.agregar(nuevo);
+
+                return Request.CreateResponse(HttpStatusCode.OK, "Articulo agregado correctamente.");
+
+            }
+            catch (Exception ex)
+            {
+
+                return Request.CreateResponse(HttpStatusCode.InternalServerError, "Ocurrió un error inesperado.");
+            }
+
+
         }
 
         // PUT: api/Articulo/5

@@ -59,7 +59,6 @@ namespace Negocio
             }
         }
         
-        
         public void agregar(Articulo nuevo)
         {
             AccesoDatos datos = new AccesoDatos();
@@ -102,9 +101,7 @@ namespace Negocio
                 datos.setearParametro("@id", articulo.Id);
 
                 datos.ejecutarAccion();
-
-                articulo.listaImagenes[0].IdArticulo = articulo.Id;
-                negocio.agregar(articulo.listaImagenes[0]);
+             
             }
             catch (Exception ex)
             {
@@ -131,6 +128,32 @@ namespace Negocio
                 throw ex;
             }
         }
+
+        public bool ExisteCodigo(string codigo)
+        {
+            AccesoDatos datos = new AccesoDatos();
+            try
+            {
+                datos.setearConsulta("SELECT COUNT(*) FROM ARTICULOS WHERE UPPER(Codigo) = @codigo");
+                datos.setearParametro("@codigo", codigo.ToUpper());
+                datos.ejecutarLectura();
+
+                if (datos.Lector.Read())
+                {
+                    return (int)datos.Lector[0] > 0;
+                }
+                return false;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            finally
+            {
+                datos.cerrarConexion();
+            }
+        }
+
     }
 }
 
