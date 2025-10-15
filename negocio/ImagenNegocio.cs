@@ -55,7 +55,6 @@ namespace Negocio
             {
 
                 Datos.setearConsulta("INSERT INTO IMAGENES (IdArticulo, ImagenUrl) " + "VALUES (@IdArticulo, @ImagenUrl)");
-
                 Datos.setearParametro("@IdArticulo", nuevo.IdArticulo);
                 Datos.setearParametro("@ImagenUrl", nuevo.ImagenUrl);
 
